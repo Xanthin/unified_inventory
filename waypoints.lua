@@ -61,9 +61,15 @@ unified_inventory.register_page("waypoints", {
 			formspec = formspec .. 	"label[1,0.8;Waypoint inactive]"
 		end
 
+		if waypoints[i].edit then
+			formspec = formspec ..
+				"field[1.3,3.2;6,.8;rename_box" .. i .. ";;"..waypoints[i].name.."]" ..
+				"image_button[7.3,2.9;.8,.8;ui_ok_icon.png;confirm_rename".. i .. ";]"
+		end
+		
 		formspec = formspec .. "label[1,1.3;World position: " .. 
 			minetest.pos_to_string(waypoints[i].world_pos) .. "]" ..
-			"label[1,1.8;Name: ]".. waypoints[i].name .. "]" ..
+			"label[1,1.8;Name: ".. waypoints[i].name .. "]" ..
 			"label[1,2.3;Hud text color: " ..
 			unified_inventory.hud_colors[waypoints[i].color][3] .. "]"
 			
@@ -181,21 +187,22 @@ end)
 
 minetest.register_on_joinplayer(function(player)
 	local waypoints = datastorage.get_container (player, "waypoints")
-
+	local need_save = false
 	-- Create new waypoints data
-	if waypoints[1] == nil then 
 		for i = 1, 5, 1 do
-			waypoints[i] = {
-			edit = false,
-			active = false,
-			display_pos = true,
-			color = 2,
-			name = "Waypoint ".. i,
-			world_pos = {x = 0, y = 0, z = 0},
-			}
+			if waypoints[i] == nil then 
+				need_save = true
+				waypoints[i] = {
+					edit = false,
+					active = false,
+					display_pos = true,
+					color = 1,
+					name = "Waypoint ".. i,
+					world_pos = {x = 0, y = 0, z = 0},
+				}
+			end	
 		end
-		datastorage.save_container(player)
-	end
+	if need_save then datastorage.save_container (player) end
 
 	-- Initialize waypoints
 	minetest.after(0.5, function()
